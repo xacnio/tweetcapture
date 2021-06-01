@@ -75,7 +75,7 @@ class TweetCapture:
 
     def __hide_items(self, mode, driver, base):
         finded = []
-        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]','/html/body/div/div/div/div[2]/header']
+        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]','/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]']
         for item in HIDE_ITEMS_XPATH:
             try:
                 element = driver.find_element_by_xpath(item)
