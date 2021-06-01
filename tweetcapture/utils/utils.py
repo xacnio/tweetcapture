@@ -1,6 +1,6 @@
 from re import match
 import os
-
+import base64
 
 def is_valid_tweet_url(url):
     result = match(
@@ -29,3 +29,10 @@ def get_chromedriver_default_path():
         return "C:/bin/chromedriver.exe"
     else:
         return '/usr/local/bin/chromedriver'
+
+def image_base64(filename): 
+    if os.path.exists(filename):
+        with open(filename, "rb") as image_file:
+            encoded_string = "data:image/png;base64," + base64.b64encode(image_file.read()).decode('ascii')
+            return encoded_string
+    return ""

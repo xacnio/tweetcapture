@@ -1,27 +1,36 @@
 from asyncio import sleep, run
 from tweetcapture.utils.webdriver import get_driver
-from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, get_tweet_base_url, get_chromedriver_default_path
-
+from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, get_tweet_base_url, get_chromedriver_default_path, image_base64
+from os.path import abspath
+from tweetcapture.screenshot_fake import TweetCaptureFake
+import base64
 
 class TweetCapture:
     driver = None
     driver_path = None
-    __mode = 0
+    mode = 0
     night_mode = 0
     chrome_opts = []
     lang = None
+    Fake = None
 
     def __init__(self, mode=0, night_mode=0):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.driver_path = get_chromedriver_default_path()
+        self.Fake = TweetCaptureFake()
 
     async def screenshot(self, url, path=None, mode=None, night_mode=None):
-        if is_valid_tweet_url(url) is False:
-            raise Exception("Invalid tweet url")
+        if self.Fake.fake is True:
+            url = "https://twitter.com/jack/status/20" if len(url) == 0 or not url.startswith("http") else url
+            if not isinstance(path, str) or len(path) == 0:
+                path = "tweet_image_fake.png"
+        else: 
+            if is_valid_tweet_url(url) is False:
+                raise Exception("Invalid tweet url")
 
-        if not isinstance(path, str) or len(path) == 0:
-            path = get_tweet_file_name(url)
+            if not isinstance(path, str) or len(path) == 0:
+                path = get_tweet_file_name(url)
 
         url = is_valid_tweet_url(url)
         if self.lang:
@@ -35,12 +44,15 @@ class TweetCapture:
         await sleep(3.0)
         base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
         content = driver.find_element_by_xpath(base)
-        self.__margin_tweet(mode or self.__mode, driver, base)
-        driver.execute_script(self.__code_footer_items(mode or self.__mode), driver.find_element_by_xpath(base + "/article/div/div/div/div[3]") or driver.find_element_by_xpath(base + "/article/div/div/div/div[2]"), driver.find_element_by_xpath(base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
-        self.__hide_items(mode or self.__mode, driver, base)
+        self.Fake.process(night_mode or self.night_mode, base, driver)
+        self.__margin_tweet(mode or self.mode, driver, base)
+        driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element_by_xpath(base + "/article/div/div/div/div[3]") or driver.find_element_by_xpath(base + "/article/div/div/div/div[2]"), driver.find_element_by_xpath(base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
+        self.__hide_items(mode or self.mode, driver, base)
+        await sleep(2.0)
         content.screenshot(path)
         driver.close()
         return path
+        
 
     def get_night_mode(self):
         return self.night_mode
@@ -50,7 +62,7 @@ class TweetCapture:
             self.night_mode = night_mode
 
     def set_mode(self, mode):
-        self.__mode = mode
+        self.mode = mode
 
     def add_chrome_argument(self, option):
         self.chrome_opts.append(option)

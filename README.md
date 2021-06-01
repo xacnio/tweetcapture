@@ -12,7 +12,8 @@ Easily take screenshots of tweets/mentions and save them as image.
 
 ## Code Usage Examples
 
-- [Test](tweetcapture/tests/test.py)
+- [Test1](tweetcapture/tests/test.py)
+- [Test2](tweetcapture/tests/test2.py)
 - [Cli](tweetcapture/cli.py)
 
 ## Modes
