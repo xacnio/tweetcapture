@@ -6,7 +6,7 @@ def is_valid_tweet_url(url):
     result = match(
         "^https?:\/\/([A-Za-z0-9.]+)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
     if result is not None:
-        return True
+        return result[0]
     return False
 
 
@@ -18,7 +18,7 @@ def get_tweet_file_name(url):
 def get_tweet_base_url(url):
     result = match(
         "^https?:\/\/([A-Za-z0-9.]+)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
-    return f"/{result[2]}/status/{result[4]}"
+    return f"/{result[2].lower()}/status/{result[4].lower()}"
 
 
 def get_chromedriver_default_path():

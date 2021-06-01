@@ -24,13 +24,17 @@ class TweetCapture:
         if not isinstance(path, str) or len(path) == 0:
             path = get_tweet_file_name(url)
 
-        driver = await get_driver(self.lang, self.chrome_opts, self.driver_path)
+        url = is_valid_tweet_url(url)
+        if self.lang:
+            url += "?lang=" + self.lang
+
+        driver = await get_driver(self.chrome_opts, self.driver_path)
         driver.get(url)
         driver.add_cookie(
             {"name": "night_mode", "value": str(night_mode or self.night_mode)})
         driver.get(url)
         await sleep(3.0)
-        base = f"//a[@href='{get_tweet_base_url(url)}']/../../../../../../../../.."
+        base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
         content = driver.find_element_by_xpath(base)
         self.__margin_tweet(mode or self.__mode, driver, base)
         driver.execute_script(self.__code_footer_items(mode or self.__mode), driver.find_element_by_xpath(base + "/article/div/div/div/div[3]") or driver.find_element_by_xpath(base + "/article/div/div/div/div[2]"), driver.find_element_by_xpath(base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
@@ -52,7 +56,7 @@ class TweetCapture:
     def add_chrome_argument(self, option):
         self.chrome_opts.append(option)
 
-    def set_browser_lang(self, lang):
+    def set_lang(self, lang):
         self.lang = lang
 
     def set_chromedriver_path(self, path):

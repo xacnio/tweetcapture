@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
-async def get_driver(lang, custom_options=None, driver_path=None):
+async def get_driver(custom_options=None, driver_path=None):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--test-type")
@@ -14,8 +14,6 @@ async def get_driver(lang, custom_options=None, driver_path=None):
     if isinstance(custom_options, list) and len(custom_options) > 0:
         for option in custom_options:
             chrome_options.add_argument(option)
-    if lang:
-        chrome_options.add_argument('--lang=' + lang)
 
     chrome_options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])
