@@ -24,7 +24,7 @@ def parse_args():
 def main():
     args = parse_args()
     tweet = TweetCapture(args.mode, args.night_mode)
-    tweet.set_browser_lang(args.lang)
+    tweet.set_lang(args.lang)
     if len(args.chromedriver) > 0:
         tweet.set_chromedriver_path(args.chromedriver)
     filename = run(tweet.screenshot(args.url, args.output))
