@@ -9,7 +9,7 @@ async def get_driver(custom_options=None, driver_path=None):
     chrome_options.add_argument("--disable-logging")
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=430,1000");
+    chrome_options.add_argument("--window-size=430,1500");
 
     if isinstance(custom_options, list) and len(custom_options) > 0:
         for option in custom_options:

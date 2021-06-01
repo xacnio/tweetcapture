@@ -1,5 +1,4 @@
 from asyncio import sleep, run
-from tweetcapture.utils.xpaths import HIDE_ITEMS_XPATH, footer_xpath
 from tweetcapture.utils.webdriver import get_driver
 from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, get_tweet_base_url, get_chromedriver_default_path
 
@@ -64,6 +63,7 @@ class TweetCapture:
 
     def __hide_items(self, mode, driver, base):
         finded = []
+        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]','/html/body/div/div/div/div[2]/header']
         for item in HIDE_ITEMS_XPATH:
             try:
                 element = driver.find_element_by_xpath(item)
