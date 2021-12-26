@@ -10,6 +10,7 @@ class TweetCapture:
     driver_path = None
     mode = 0
     night_mode = 0
+    wait_time = 5
     chrome_opts = []
     lang = None
     Fake = None
@@ -41,7 +42,7 @@ class TweetCapture:
         driver.add_cookie(
             {"name": "night_mode", "value": str(night_mode or self.night_mode)})
         driver.get(url)
-        await sleep(3.0)
+        await sleep(self.wait_time)
         base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
         content = driver.find_element_by_xpath(base)
         self.Fake.process(night_mode or self.night_mode, base, driver)
@@ -53,6 +54,9 @@ class TweetCapture:
         driver.close()
         return path
         
+    def set_wait_time(self, time):
+        if 1.0 <= time <= 10.0: 
+            self.wait_time = time
 
     def get_night_mode(self):
         return self.night_mode
@@ -104,24 +108,29 @@ class TweetCapture:
         else:
             keys = [0,1,2]
         return """
+        var texts = ["https://help.twitter.com/using-twitter/how-to-tweet#source-labels", "/likes", "/retweets", "<svg viewBox"]
+        var mode = """+str(mode)+""";
         var items = [""" + ",".join(str(v) for v in keys) + """];
         var length = arguments[0].childNodes.length;
         arguments[1].style.display="none";
-        if(arguments[0].childNodes[length-2].innerHTML.search("/retweets") == -1 && arguments[0].childNodes[length-2].innerHTML.search("/likes") == -1) {
-            if(items.length == 3) items = [0,1]
-            else if(items.length == 2) items = [0,1]
-            else items = [1]
-            for(var i = length-2, x = 0; i < length; i++, x++) {
-                if(items.includes(x))
-                    arguments[0].childNodes[i].style.display="none";
-            }
-        }
-        else {
-            for(var i = length-3, x = 0; i < length; i++, x++) {
-                if(items.includes(x))
-                    arguments[0].childNodes[i].style.display="none";
-                if(items.includes(0) && x == 1)
+        for(var i = 0; i < length; i++) {
+            let t = arguments[0].childNodes[i].innerHTML;
+            if(mode == 0) {
+                for(var x = 0; x < texts.length; x++) {
+                    if(t.search(texts[x]) != -1) {
+                        arguments[0].childNodes[i].style.display="none";
+                    }
+                }
+                if(i == length-1) { 
                     arguments[0].childNodes[i].style.marginTop = '15px';
+                    arguments[0].childNodes[i].style.border = 'none';
+                }
+            } else if(mode == 1) {
+                if(t.search(texts[0]) != -1) arguments[0].childNodes[i].style.display="none";
+                else if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
+                else if(t.search(texts[4]) != -1) arguments[0].childNodes[i].style.display="none";
+            } else if(mode == 2) {
+                if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
             }
         }
         """
