@@ -10,7 +10,7 @@ class TweetCaptureFake:
     image = ""
     verified = None
 
-    def create(self, name, content, username=None, image=None, verified=None):
+    def create(self, name="", content="", username=None, image="", verified=None):
         username = username.replace("\"", "\\\"") if username is not None else None
         image = image.replace("\"", "\\\"") if image is not None else None
         content = content.replace("\"", "\\\"") if content is not None else None
@@ -36,7 +36,7 @@ class TweetCaptureFake:
         COLOR = "#1b95e0"
         twitter_hashtag_re = re.compile(r'#(\w+)')
         twitter_usertag_re = re.compile(r'@(\w+)')
-        twitter_url_re = re.compile(r'(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?')
+        twitter_url_re = re.compile(r"""(?:(?:https?|ftp):\/\/|\b(?:[a-z\d]+\.))(?:(?:[^\s()<>]+|\((?:[^\s()<>]+|(?:\([^\s()<>]+\)))?\))+(?:\((?:[^\s()<>]+|(?:\(?:[^\s()<>]+\)))?\)|[^\s`!()\[\]{};:'".,<>?«»“”‘’]))?""")
         content = twitter_hashtag_re.sub(lambda m: '<span style="color: %s;display:inline;">%s</span>' % (COLOR, m.group(0)), content)
         content = twitter_usertag_re.sub(lambda m: '<span style="color: %s;display:inline;">%s</span>' % (COLOR, m.group(0)), content)
         content = twitter_url_re.sub(lambda m: '<span style="color: %s;display:inline;">%s</span>' % (COLOR, m.group(0)), content)
