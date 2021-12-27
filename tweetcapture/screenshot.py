@@ -128,7 +128,9 @@ class TweetCapture:
             } else if(mode == 1) {
                 if(t.search(texts[0]) != -1) arguments[0].childNodes[i].style.display="none";
                 else if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
-                else if(t.search(texts[4]) != -1) arguments[0].childNodes[i].style.display="none";
+                if(i == 0) { 
+                    arguments[0].childNodes[i].style.marginBottom = '15px';
+                }
             } else if(mode == 2) {
                 if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
             }
