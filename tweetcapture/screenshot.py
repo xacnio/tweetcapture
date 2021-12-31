@@ -38,20 +38,28 @@ class TweetCapture:
             url += "?lang=" + self.lang
 
         driver = await get_driver(self.chrome_opts, self.driver_path)
-        driver.get(url)
-        driver.add_cookie(
-            {"name": "night_mode", "value": str(night_mode or self.night_mode)})
-        driver.get(url)
-        await sleep(self.wait_time)
-        base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
-        content = driver.find_element_by_xpath(base)
-        self.Fake.process(night_mode or self.night_mode, base, driver)
-        self.__margin_tweet(mode or self.mode, driver, base)
-        driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element_by_xpath(base + "/article/div/div/div/div[3]") or driver.find_element_by_xpath(base + "/article/div/div/div/div[2]"), driver.find_element_by_xpath(base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
-        self.__hide_items(mode or self.mode, driver, base)
-        await sleep(2.0)
-        content.screenshot(path)
-        driver.close()
+        try:
+            driver.get(url)
+            driver.add_cookie(
+                {"name": "night_mode", "value": str(night_mode or self.night_mode)})
+            driver.get(url)
+            await sleep(self.wait_time)
+            base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
+            try:
+                content = driver.find_element_by_xpath(base)
+            except:
+                base = f"(//ancestor::article)[1]/.."
+                content = driver.find_element_by_xpath(base)
+            self.Fake.process(night_mode or self.night_mode, base, driver)
+            self.__margin_tweet(mode or self.mode, driver, base)
+            driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element_by_xpath(base + "/article/div/div/div/div[3]") or driver.find_element_by_xpath(base + "/article/div/div/div/div[2]"), driver.find_element_by_xpath(base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
+            self.__hide_items(mode or self.mode, driver, base)
+            driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0");
+            await sleep(1.0)
+            content.screenshot(path)
+            driver.close()
+        except:
+            driver.close()
         return path
         
     def set_wait_time(self, time):
