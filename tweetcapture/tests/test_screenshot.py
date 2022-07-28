@@ -19,7 +19,7 @@ class TestScreenshot(unittest.TestCase):
 
         print(f"Screenshot test started: {url} -> {output}")
 
-        tweet = TweetCapture()
+        tweet = TweetCapture(test=True)
         filename = run(tweet.screenshot("https://twitter.com/jack/status/20", output, mode=3, night_mode=2))
         
         self.assertEqual(filename, output, "File name not equal with output filename")

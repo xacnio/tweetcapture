@@ -15,12 +15,14 @@ class TweetCapture:
     chrome_opts = []
     lang = None
     Fake = None
+    test = False
 
-    def __init__(self, mode=3, night_mode=0):
+    def __init__(self, mode=3, night_mode=0, test=False):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.driver_path = get_chromedriver_default_path()
         self.Fake = TweetCaptureFake()
+        self.test = test
 
     async def screenshot(self, url, path=None, mode=None, night_mode=None):
         if self.Fake.fake is True:
@@ -57,11 +59,11 @@ class TweetCapture:
                         break
                     except Exception as err:
                         if q == 9:
-                            driver.save_screenshot("web.png")
+                            if self.test is True: driver.save_screenshot("web.png")
                             raise err
                         await sleep(1.0)
                         continue
-            driver.save_screenshot("web.png")
+            if self.test is True: driver.save_screenshot("web.png")
             self.Fake.process(night_mode or self.night_mode, base, driver)
             self.__margin_tweet(mode or self.mode, driver, base)
             driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element(By.XPATH, base + "/article/div/div/div/div[3]") or driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]"), driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
