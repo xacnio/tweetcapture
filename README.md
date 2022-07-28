@@ -12,10 +12,14 @@ Easily take screenshots of tweets/mentions and save them as image.
 
 ## Code Usage Examples
 
-- [Test1](tweetcapture/tests/test.py)
-- [Test2](tweetcapture/tests/test2.py)
 - [Cli](tweetcapture/cli.py)
-- [Examples](tweetcapture/examples/)
+- [Code Examples](tweetcapture/examples/)
+
+## Testing
+```
+> cd tweetcapture/tests/
+> python -m unittest
+```
 
 ## Modes
 
@@ -33,9 +37,3 @@ Easily take screenshots of tweets/mentions and save them as image.
 | 0   | Light mode | <img src="tweetcapture/assets/test4.png" width="300"> |
 | 1   | Dark mode  | <img src="tweetcapture/assets/test3.png" width="300"> |
 | 2   | Black mode | <img src="tweetcapture/assets/test1.png" width="300"> |
-
-## Testing
-```
-> cd tweetcapture/tests/
-> python -m unittest
-```
