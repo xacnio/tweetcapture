@@ -21,15 +21,21 @@ Easily take screenshots of tweets/mentions and save them as image.
 
 | #   |                                                   |                                                      |
 | --- | ------------------------------------------------- | ---------------------------------------------------- |
-| 0   | Hide everything outside tweet content and author. | <img src="tweetcapture/tests/test4.png" width="300"> |
-| 1   | Show retweet/like counts.                         | <img src="tweetcapture/tests/test3.png" width="300"> |
-| 2   | Show retweet/like counts and timestamp.           | <img src="tweetcapture/tests/test2.png" width="300"> |
-| 3   | Show everything.                                  | <img src="tweetcapture/tests/test1.png" width="300"> |
+| 0   | Hide everything outside tweet content and author. | <img src="tweetcapture/assets/test4.png" width="300"> |
+| 1   | Show retweet/like counts.                         | <img src="tweetcapture/assets/test3.png" width="300"> |
+| 2   | Show retweet/like counts and timestamp.           | <img src="tweetcapture/assets/test2.png" width="300"> |
+| 3   | Show everything.                                  | <img src="tweetcapture/assets/test1.png" width="300"> |
 
 ## Night Modes
 
 | #   |            |                                                      |
 | --- | ---------- | ---------------------------------------------------- |
-| 0   | Light mode | <img src="tweetcapture/tests/test4.png" width="300"> |
-| 1   | Dark mode  | <img src="tweetcapture/tests/test3.png" width="300"> |
-| 2   | Black mode | <img src="tweetcapture/tests/test1.png" width="300"> |
+| 0   | Light mode | <img src="tweetcapture/assets/test4.png" width="300"> |
+| 1   | Dark mode  | <img src="tweetcapture/assets/test3.png" width="300"> |
+| 2   | Black mode | <img src="tweetcapture/assets/test1.png" width="300"> |
+
+## Testing
+```
+> cd tweetcapture/tests/
+> python -m unittest
+```

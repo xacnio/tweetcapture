@@ -4,18 +4,19 @@ from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, ge
 from os.path import abspath
 from tweetcapture.screenshot_fake import TweetCaptureFake
 import base64
+from selenium.webdriver.common.by import By
 
 class TweetCapture:
     driver = None
     driver_path = None
-    mode = 0
+    mode = 3
     night_mode = 0
     wait_time = 5
     chrome_opts = []
     lang = None
     Fake = None
 
-    def __init__(self, mode=0, night_mode=0):
+    def __init__(self, mode=3, night_mode=0):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.driver_path = get_chromedriver_default_path()
@@ -45,21 +46,33 @@ class TweetCapture:
             driver.get(url)
             await sleep(self.wait_time)
             base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
-            try:
-                content = driver.find_element_by_xpath(base)
-            except:
-                base = f"(//ancestor::article)[1]/.."
-                content = driver.find_element_by_xpath(base)
+            for q in range(10):
+                try:
+                    content = driver.find_element(By.XPATH, base)             
+                    break
+                except Exception as err:
+                    base = f"(//ancestor::article)[1]/.."
+                    try:
+                        content = driver.find_element(By.XPATH, base)
+                        break
+                    except Exception as err:
+                        if q == 9:
+                            driver.save_screenshot("web.png")
+                            raise err
+                        await sleep(1.0)
+                        continue
+            driver.save_screenshot("web.png")
             self.Fake.process(night_mode or self.night_mode, base, driver)
             self.__margin_tweet(mode or self.mode, driver, base)
-            driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element_by_xpath(base + "/article/div/div/div/div[3]") or driver.find_element_by_xpath(base + "/article/div/div/div/div[2]"), driver.find_element_by_xpath(base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
+            driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element(By.XPATH, base + "/article/div/div/div/div[3]") or driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]"), driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
             self.__hide_items(mode or self.mode, driver, base)
             driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0");
             await sleep(1.0)
-            content.screenshot(path)
-            driver.close()
-        except:
-            driver.close()
+            result = content.screenshot(path)
+            driver.quit()
+        except Exception as err:
+            driver.quit()
+            raise err
         return path
         
     def set_wait_time(self, time):
@@ -87,10 +100,12 @@ class TweetCapture:
 
     def __hide_items(self, mode, driver, base):
         finded = []
-        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]','/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]']
+        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]',
+        '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]',
+        base + '/article/div/div/div/div[3]/div[2]/div/div[2]']
         for item in HIDE_ITEMS_XPATH:
             try:
-                element = driver.find_element_by_xpath(item)
+                element = driver.find_element(By.XPATH, item)
                 driver.execute_script("""
                 arguments[0].style.display="none";
                 """, element)
@@ -101,14 +116,11 @@ class TweetCapture:
         if mode == 0 or mode == 1:
             try:
                 driver.execute_script(
-                    """arguments[0].parentNode.style.marginBottom = '35px';""", driver.find_element_by_xpath(base+"/article/div"))
+                    """arguments[0].parentNode.style.marginBottom = '35px';""", driver.find_element(By.XPATH, base+"/article/div"))
             except:
                 pass
 
     def __code_footer_items(self, mode):
-        if mode == 3:
-            return """arguments[1].style.display="none";"""
-        
         if mode == 2:
             keys = [2]
         elif mode == 1:
@@ -134,13 +146,20 @@ class TweetCapture:
                     arguments[0].childNodes[i].style.border = 'none';
                 }
             } else if(mode == 1) {
-                if(t.search(texts[0]) != -1) arguments[0].childNodes[i].style.display="none";
-                else if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
-                if(i == 0) { 
-                    arguments[0].childNodes[i].style.marginBottom = '15px';
+                if(t.search(texts[0]) != -1) 
+                {
+                    arguments[0].childNodes[i].style.display="none";
+                    arguments[0].childNodes[i-1].style.marginBottom = '15px';
                 }
+                else if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
             } else if(mode == 2) {
                 if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
+            } else if(mode == 3) {
+                console.log(mode, t)
+                if(t.search(texts[3]) != -1) {
+                    console.log(arguments[0].childNodes[i].childNodes)
+                    arguments[0].childNodes[i].childNodes[0].style.borderBottom="none";
+                }
             }
         }
         """

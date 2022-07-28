@@ -8,13 +8,14 @@ with open('README.md', 'r') as fh:
 # Requirements
 def get_requirements():
     return [
-        'selenium>=3.14',
+        'selenium>=4.0.0',
+        'webdriver-manager>=3.8.1',
     ]
 
 
 setuptools.setup(
     name="tweet-capture",
-    version="0.0.11",
+    version="0.0.12",
     author="Alperen Çetin",
     author_email="xacnio@pm.me",
     description="Take a tweet screenshot",

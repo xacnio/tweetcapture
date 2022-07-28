@@ -35,7 +35,11 @@ def upload_post_photo(filename, caption=""):
 async def main():
     # Tweet Screenshot
     tweet = TweetCapture()
-    path = await tweet.screenshot("https://mobile.twitter.com/jack/status/20", "testig.png", mode=3, night_mode=2)
+    try:
+        path = await tweet.screenshot("https://twitter.com/jack/status/20", "testig.png", mode=3, night_mode=2)
+    except Exception as error:
+        traceback.print_exc()
+        return
 
     # Convert screenshot image to jpg. Because instagram is accepting jpeg format and screenshot is in png format.
     im1 = Image.open(path)

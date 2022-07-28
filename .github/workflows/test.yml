@@ -1,0 +1,37 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          pip install opencv-python
+      - name: Test 
+        run: |
+          cd tweetcapture/tests
+          python -m unittest
+      - name: Screenshot to Artifact
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: results-${{ matrix.os }}
+          path: |
+            tweetcapture/tests/web.png
+            tweetcapture/tests/test.png
+            tweetcapture/tests/result.jpg
+          if-no-files-found: ignore
