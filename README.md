@@ -29,6 +29,7 @@ Easily take screenshots of tweets/mentions and save them as image.
 | 1   | Show retweet/like counts.                         | <img src="tweetcapture/assets/test3.png" width="300"> |
 | 2   | Show retweet/like counts and timestamp.           | <img src="tweetcapture/assets/test2.png" width="300"> |
 | 3   | Show everything.                                  | <img src="tweetcapture/assets/test1.png" width="300"> |
+| 4   | Show timestamp.                                   | <img src="tweetcapture/assets/test5.png" width="300"> |
 
 ## Night Modes
 
