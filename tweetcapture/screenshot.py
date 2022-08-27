@@ -127,6 +127,8 @@ class TweetCapture:
             keys = [2]
         elif mode == 1:
             keys = [0,2]
+        elif mode == 4:
+            keys = [1, 2]
         else:
             keys = [0,1,2]
         return """
@@ -162,6 +164,13 @@ class TweetCapture:
                     console.log(arguments[0].childNodes[i].childNodes)
                     arguments[0].childNodes[i].childNodes[0].style.borderBottom="none";
                 }
+            } else if(mode == 4) {
+                if(t.search(texts[1]) != -1) 
+                {
+                    arguments[0].childNodes[i].style.display="none";
+                    arguments[0].childNodes[i-1].style.marginBottom = '15px';
+                }
+                if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
             }
         }
         """
