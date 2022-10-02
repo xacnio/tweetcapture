@@ -44,7 +44,7 @@ class TweetCapture:
         try:
             driver.get(url)
             driver.add_cookie(
-                {"name": "night_mode", "value": str(night_mode or self.night_mode)})
+                {"name": "night_mode", "value": str(self.night_mode if night_mode is None else night_mode)})
             driver.get(url)
             await sleep(self.wait_time)
             base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
@@ -64,10 +64,10 @@ class TweetCapture:
                         await sleep(1.0)
                         continue
             if self.test is True: driver.save_screenshot("web.png")
-            self.Fake.process(night_mode or self.night_mode, base, driver)
-            self.__margin_tweet(mode or self.mode, driver, base)
-            driver.execute_script(self.__code_footer_items(mode or self.mode), driver.find_element(By.XPATH, base + "/article/div/div/div/div[3]") or driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]"), driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
-            self.__hide_items(mode or self.mode, driver, base)
+            self.Fake.process(self.night_mode if night_mode is None else night_mode, base, driver)
+            self.__margin_tweet(self.mode if mode is None else mode, driver, base)
+            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), driver.find_element(By.XPATH, base + "/article/div/div/div/div[3]") or driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]"), driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
+            self.__hide_items(self.mode if mode is None else mode, driver, base)
             driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0");
             await sleep(1.0)
             result = content.screenshot(path)
