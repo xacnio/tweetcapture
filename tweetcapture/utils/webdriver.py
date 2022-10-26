@@ -24,6 +24,9 @@ async def get_driver(custom_options=None, driver_path=None):
     chrome_options.add_experimental_option(
         'excludeSwitches', ['enable-logging'])
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    try:
+        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    except:
+        driver = webdriver.Chrome(executable_path=driver_path, options=chrome_options)
 
     return driver
