@@ -15,7 +15,7 @@ def get_requirements():
 
 setuptools.setup(
     name="tweet-capture",
-    version="0.0.16",
+    version="0.0.17",
     author="Alperen Çetin",
     author_email="xacnio@pm.me",
     description="Take a tweet screenshot",
