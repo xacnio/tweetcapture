@@ -1,6 +1,6 @@
 from asyncio import sleep, run
 from tweetcapture.utils.webdriver import get_driver
-from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, get_tweet_base_url, get_chromedriver_default_path, image_base64
+from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, get_tweet_base_url, image_base64
 from os.path import abspath
 from tweetcapture.screenshot_fake import TweetCaptureFake
 import base64
@@ -20,7 +20,6 @@ class TweetCapture:
     def __init__(self, mode=3, night_mode=0, test=False):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
-        self.driver_path = get_chromedriver_default_path()
         self.Fake = TweetCaptureFake()
         self.test = test
 
