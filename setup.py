@@ -11,12 +11,13 @@ def get_requirements():
         'selenium>=4.0.0',
         'webdriver-manager>=3.8.4',
         'packaging',
+        'Pillow>=9.3.0',
     ]
 
 
 setuptools.setup(
     name="tweet-capture",
-    version="0.0.18",
+    version="0.1.0",
     author="Alperen Çetin",
     author_email="xacnio@pm.me",
     description="Take a tweet screenshot",

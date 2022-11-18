@@ -1,10 +1,9 @@
-from asyncio import sleep, run
+from asyncio import sleep
 from tweetcapture.utils.webdriver import get_driver
-from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, get_tweet_base_url, image_base64
-from os.path import abspath
-from tweetcapture.screenshot_fake import TweetCaptureFake
-import base64
+from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name
 from selenium.webdriver.common.by import By
+from PIL import Image
+from os import remove
 
 class TweetCapture:
     driver = None
@@ -14,26 +13,21 @@ class TweetCapture:
     wait_time = 5
     chrome_opts = []
     lang = None
-    Fake = None
     test = False
+    show_parent_tweets = False
 
-    def __init__(self, mode=3, night_mode=0, test=False):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
-        self.Fake = TweetCaptureFake()
         self.test = test
+        self.show_parent_tweets = show_parent_tweets
 
-    async def screenshot(self, url, path=None, mode=None, night_mode=None):
-        if self.Fake.fake is True:
-            url = "https://twitter.com/jack/status/20" if len(url) == 0 or not url.startswith("http") else url
-            if not isinstance(path, str) or len(path) == 0:
-                path = "tweet_image_fake.png"
-        else: 
-            if is_valid_tweet_url(url) is False:
-                raise Exception("Invalid tweet url")
+    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None):
+        if is_valid_tweet_url(url) is False:
+            raise Exception("Invalid tweet url")
 
-            if not isinstance(path, str) or len(path) == 0:
-                path = get_tweet_file_name(url)
+        if not isinstance(path, str) or len(path) == 0:
+            path = get_tweet_file_name(url)
 
         url = is_valid_tweet_url(url)
         if self.lang:
@@ -46,30 +40,60 @@ class TweetCapture:
                 {"name": "night_mode", "value": str(self.night_mode if night_mode is None else night_mode)})
             driver.get(url)
             await sleep(self.wait_time)
-            base = f"//a[translate(@href,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='{get_tweet_base_url(url)}']/ancestor::article/.."
-            for q in range(10):
-                try:
-                    content = driver.find_element(By.XPATH, base)             
-                    break
-                except Exception as err:
-                    base = f"(//ancestor::article)[1]/.."
-                    try:
-                        content = driver.find_element(By.XPATH, base)
-                        break
-                    except Exception as err:
-                        if q == 9:
-                            if self.test is True: driver.save_screenshot("web.png")
-                            raise err
-                        await sleep(1.0)
-                        continue
+           
+            self.__hide_global_items(driver)
+            driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0")
+
             if self.test is True: driver.save_screenshot("web.png")
-            self.Fake.process(self.night_mode if night_mode is None else night_mode, base, driver)
-            self.__margin_tweet(self.mode if mode is None else mode, driver, base)
-            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), driver.find_element(By.XPATH, base + "/article/div/div/div/div[3]") or driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]"), driver.find_element(By.XPATH, base + "/article/div/div/div/div[2]/div[2]/div/div/div[1]/div[2]"))
-            self.__hide_items(self.mode if mode is None else mode, driver, base)
-            driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0");
             await sleep(1.0)
-            result = content.screenshot(path)
+            elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets)
+            if len(elements) == 0:
+                raise Exception("Tweets not found")
+            else:
+                for i, element in enumerate(elements):
+                    if i == main:
+                        self.__hide_tweet_items(element)        
+                        driver.execute_script(self.__code_main_footer_items(self.mode if mode is None else mode), element.find_element(By.XPATH, ".//article/div/div/div/div[3]") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                    else:
+                        driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                    if i == len(elements)-1:
+                        self.__margin_tweet(self.mode if mode is None else mode, element)
+                        
+            if len(elements) == 1:
+                elements[0].screenshot(path)
+            else:
+                filenames = []
+                for element in elements:
+                    filename = "tmp_%s_tweetcapture.png" % element.id
+                    driver.execute_script("arguments[0].scrollIntoView();", element)
+                    await sleep(0.1)
+                    element.screenshot(filename)
+                    filenames.append(filename)
+                width = 0
+                height = 0
+                images = []
+                for filename in filenames:
+                    im = Image.open(filename)
+                    if width == 0:
+                        width = im.size[0]
+                    height += im.size[1]
+                    images.append(im)
+                c = (255,255,255)
+                if self.night_mode == 1:
+                    c = (21,32,43)
+                elif self.night_mode == 2:
+                    c = (0,0,0)
+                new_im = Image.new('RGB', (width,height), c)
+                y = 0
+                for im in images:
+                    new_im.paste(im, (0,y))
+                    y += im.size[1]
+                    im.close()
+                    remove(im.filename)
+                
+                new_im.save(path)
+                new_im.close()
+  
             driver.quit()
         except Exception as err:
             driver.quit()
@@ -99,11 +123,9 @@ class TweetCapture:
     def set_chromedriver_path(self, path):
         self.driver_path = path
 
-    def __hide_items(self, mode, driver, base):
-        finded = []
+    def __hide_global_items(self, driver):
         HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]',
-        '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]',
-        base + '/article/div/div/div/div[3]/div[2]/div/div[2]']
+        '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]']
         for item in HIDE_ITEMS_XPATH:
             try:
                 element = driver.find_element(By.XPATH, item)
@@ -113,27 +135,40 @@ class TweetCapture:
             except:
                 continue
 
-    def __margin_tweet(self, mode, driver, base):
+    def __hide_tweet_items(self, base):
+        HIDE_ITEMS_XPATH = ['.//article/div/div/div/div[3]/div[2]/div/div[2]']
+        for item in HIDE_ITEMS_XPATH:
+            try:
+                element = base.find_element(By.XPATH, item)
+                base.parent.execute_script("""
+                arguments[0].style.display="none";
+                """, element)
+            except:
+                continue
+
+    def __margin_tweet(self, mode, base):
         if mode == 0 or mode == 1:
             try:
-                driver.execute_script(
-                    """arguments[0].parentNode.style.marginBottom = '35px';""", driver.find_element(By.XPATH, base+"/article/div"))
+                base.parent.execute_script(
+                    """arguments[0].childNodes[0].style.paddingBottom = '35px';""", base.find_element(By.TAG_NAME, "article"))
             except:
                 pass
 
     def __code_footer_items(self, mode):
-        if mode == 2:
-            keys = [2]
-        elif mode == 1:
-            keys = [0,2]
-        elif mode == 4:
-            keys = [1, 2]
+        if mode == 0 or mode == 4:
+            return """
+            arguments[0].style.display="none";
+            arguments[1].style.display="none";
+            """
         else:
-            keys = [0,1,2]
+            return """
+            arguments[1].style.display="none";
+            """
+
+    def __code_main_footer_items(self, mode):
         return """
-        var texts = ["https://help.twitter.com/using-twitter/how-to-tweet#source-labels", "/likes", "/retweets", "<svg viewBox"]
+        var texts = ["https://help.twitter.com/using-twitter/how-to-tweet#source-labels", "/likes", "/retweets", "<svg viewBox", "r-1ta3fxp"]
         var mode = """+str(mode)+""";
-        var items = [""" + ",".join(str(v) for v in keys) + """];
         var length = arguments[0].childNodes.length;
         arguments[1].style.display="none";
         for(var i = 0; i < length; i++) {
@@ -158,9 +193,9 @@ class TweetCapture:
             } else if(mode == 2) {
                 if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
             } else if(mode == 3) {
-                console.log(mode, t)
+                //console.log(mode, t)
                 if(t.search(texts[3]) != -1) {
-                    console.log(arguments[0].childNodes[i].childNodes)
+                    //console.log(arguments[0].childNodes[i].childNodes)
                     arguments[0].childNodes[i].childNodes[0].style.borderBottom="none";
                 }
             } else if(mode == 4) {
@@ -173,3 +208,28 @@ class TweetCapture:
             }
         }
         """
+
+    # Return: (elements, main_element_index)
+    def __get_tweets(self, driver, show_parents):
+        elements = driver.find_elements(By.XPATH, "(//ancestor::article)/..")
+        length = len(elements)
+        if length > 0:
+            if length == 1:
+                return elements, 0
+            else:
+                main_element = -1
+                for i, element in enumerate(elements):
+                    main_tweet_details = element.find_elements(By.XPATH, ".//div[contains(@class, 'r-1471scf')]")
+                    if len(main_tweet_details) == 1:
+                        main_element = i
+                        break
+                if main_element == -1:
+                    return [], -1
+                else:
+                    if show_parents and main_element != 0:
+                        for i, element in enumerate(elements[0:main_element+1]):
+                            driver.execute_script("""console.log(arguments[0])""", element)
+                        return elements[0:main_element+1], main_element
+                    else:
+                        return elements[0:1], main_element
+        return [], -1
