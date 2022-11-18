@@ -93,8 +93,7 @@ class TweetCapture:
                 
                 new_im.save(path)
                 new_im.close()
-                    
-            #await sleep(61.0)
+  
             driver.quit()
         except Exception as err:
             driver.quit()
@@ -220,9 +219,10 @@ class TweetCapture:
             else:
                 main_element = -1
                 for i, element in enumerate(elements):
-                    main_tweet_details = element.find_elements(By.CSS_SELECTOR, "article div.r-1471scf")
-                    if main_tweet_details:
+                    main_tweet_details = element.find_elements(By.XPATH, ".//div[contains(@class, 'r-1471scf')]")
+                    if len(main_tweet_details) == 1:
                         main_element = i
+                        break
                 if main_element == -1:
                     return [], -1
                 else:
