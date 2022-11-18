@@ -42,7 +42,7 @@ Easily take screenshots of tweets/mentions and save them as image.
 ## Show Mentions Example
 _If the tweet have a very many mentions, there may be problems because "show more" option not supported. The tool can show only first loaded mentions. You can limit mention count on screenshot by using -sc <count> argument_
 ```
-tweetcapture -sc 3 https://twitter.com/Twitter/status/1445078208190291973
+tweetcapture -sm 3 https://twitter.com/Twitter/status/1445078208190291973
 ```
 <details>
     <summary>Image</summary>
