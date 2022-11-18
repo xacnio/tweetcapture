@@ -236,13 +236,13 @@ class TweetCapture:
                         return elements, main_element
                     elif show_parents:
                         if main_element == 0:
-                            return elements[0:1], main_element
+                            return elements[0:1], 0
                         else:
                             return elements[:r], main_element
                     elif show_mentions_count > 0:
                         if len(elements[r:]) > show_mentions_count:
-                            return elements[r] + elements[r:r2], main_element
-                        return elements[main_element:], main_element
+                            return elements[main_element:1] + elements[r:r2], 0
+                        return elements[main_element:], 0
                     else:
                         return elements[main_element:r], main_element
         return [], -1
