@@ -15,14 +15,16 @@ class TweetCapture:
     lang = None
     test = False
     show_parent_tweets = False
+    show_mentions_count = 0
 
-    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.test = test
         self.show_parent_tweets = show_parent_tweets
+        self.show_mentions_count = show_mentions_count
 
-    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None):
+    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None):
         if is_valid_tweet_url(url) is False:
             raise Exception("Invalid tweet url")
 
@@ -46,7 +48,7 @@ class TweetCapture:
 
             if self.test is True: driver.save_screenshot("web.png")
             await sleep(1.0)
-            elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets)
+            elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets, self.show_mentions_count if show_mentions_count is None else show_mentions_count)
             if len(elements) == 0:
                 raise Exception("Tweets not found")
             else:
@@ -210,7 +212,7 @@ class TweetCapture:
         """
 
     # Return: (elements, main_element_index)
-    def __get_tweets(self, driver, show_parents):
+    def __get_tweets(self, driver, show_parents, show_mentions_count):
         elements = driver.find_elements(By.XPATH, "(//ancestor::article)/..")
         length = len(elements)
         if length > 0:
@@ -226,10 +228,21 @@ class TweetCapture:
                 if main_element == -1:
                     return [], -1
                 else:
-                    if show_parents and main_element != 0:
-                        for i, element in enumerate(elements[0:main_element+1]):
-                            driver.execute_script("""console.log(arguments[0])""", element)
-                        return elements[0:main_element+1], main_element
+                    r = main_element+1
+                    r2 = r+show_mentions_count
+                    if show_parents and show_mentions_count > 0:
+                        if len(elements[r:]) > show_mentions_count:                   
+                            return (elements[0:r] + elements[r:r2]), main_element
+                        return elements, main_element
+                    elif show_parents:
+                        if main_element == 0:
+                            return elements[0:1], main_element
+                        else:
+                            return elements[:r], main_element
+                    elif show_mentions_count > 0:
+                        if len(elements[r:]) > show_mentions_count:
+                            return elements[r] + elements[r:r2], main_element
+                        return elements[main_element:], main_element
                     else:
-                        return elements[0:1], main_element
+                        return elements[main_element:r], main_element
         return [], -1
