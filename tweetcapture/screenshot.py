@@ -4,6 +4,7 @@ from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name
 from selenium.webdriver.common.by import By
 from PIL import Image
 from os import remove
+from os.path import exists
 
 class TweetCapture:
     driver = None
@@ -16,20 +17,25 @@ class TweetCapture:
     test = False
     show_parent_tweets = False
     show_mentions_count = 0
+    overwrite = False
 
-    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.test = test
         self.show_parent_tweets = show_parent_tweets
         self.show_mentions_count = show_mentions_count
+        self.overwrite = overwrite
 
-    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None):
+    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None):
         if is_valid_tweet_url(url) is False:
             raise Exception("Invalid tweet url")
 
         if not isinstance(path, str) or len(path) == 0:
             path = get_tweet_file_name(url)
+
+        if exists(path) and (self.overwrite if overwrite is None else overwrite) is False:
+            raise Exception("File already exists")
 
         url = is_valid_tweet_url(url)
         if self.lang:
