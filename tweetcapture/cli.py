@@ -14,6 +14,8 @@ def parse_args():
     parser.add_argument('-o', '--output', type=str, help="Output file name", default="")
     parser.add_argument('-sp', '--show-parent-tweets', dest='show_parent_tweets', action='store_true', help="Show parent tweets")
     parser.add_argument('-sm', '--show-mentions', type=int, help="Show mentions count (default: 0)", default=0)
+    parser.add_argument('--overwrite', dest='overwrite', action='store_true', help="Overwrite output file if exists")
+    parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="Debug mode")
     parser.set_defaults(show_parent_tweets=False)
 
     args = parser.parse_args()
@@ -22,7 +24,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    tweet = TweetCapture(args.mode, args.night_mode, show_parent_tweets=args.show_parent_tweets, show_mentions_count=args.show_mentions)
+    tweet = TweetCapture(args.mode, args.night_mode, show_parent_tweets=args.show_parent_tweets, show_mentions_count=args.show_mentions, overwrite=args.overwrite)
     tweet.set_lang(args.lang)
     tweet.set_wait_time(args.t)
     if len(args.chromedriver) > 0:
@@ -31,4 +33,7 @@ def main():
         filename = run(tweet.screenshot(args.url, args.output))
         print(f"Screenshot is saved: {filename}")
     except Exception as error:
-        traceback.print_exc()
+        if args.debug:
+            traceback.print_exc()
+        else:
+            print(str(error))
