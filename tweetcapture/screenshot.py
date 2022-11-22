@@ -53,7 +53,7 @@ class TweetCapture:
             driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0")
 
             if self.test is True: driver.save_screenshot("web.png")
-            await sleep(1.0)
+            await sleep(2.0)
             elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets, self.show_mentions_count if show_mentions_count is None else show_mentions_count)
             if len(elements) == 0:
                 raise Exception("Tweets not found")
@@ -63,7 +63,8 @@ class TweetCapture:
                         self.__hide_tweet_items(element)        
                         driver.execute_script(self.__code_main_footer_items(self.mode if mode is None else mode), element.find_element(By.XPATH, ".//article/div/div/div/div[3]") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
                     else:
-                        driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                        if not len(element.find_elements(By.XPATH, './/article/div/div/div/div[2]/div/div[2]/div')) > 0:
+                            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
                     if i == len(elements)-1:
                         self.__margin_tweet(self.mode if mode is None else mode, element)
                         
