@@ -1,6 +1,6 @@
 from asyncio import sleep
 from tweetcapture.utils.webdriver import get_driver
-from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name
+from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, add_corners
 from selenium.webdriver.common.by import By
 from PIL import Image
 from os import remove
@@ -18,16 +18,18 @@ class TweetCapture:
     show_parent_tweets = False
     show_mentions_count = 0
     overwrite = False
+    radius = 30
 
-    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=30):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.test = test
         self.show_parent_tweets = show_parent_tweets
         self.show_mentions_count = show_mentions_count
         self.overwrite = overwrite
+        self.radius = radius
 
-    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None):
+    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None, radius=None):
         if is_valid_tweet_url(url) is False:
             raise Exception("Invalid tweet url")
 
@@ -41,6 +43,8 @@ class TweetCapture:
         if self.lang:
             url += "?lang=" + self.lang
 
+            
+        radius = self.radius if radius is None else radius
         driver = await get_driver(self.chrome_opts, self.driver_path)
         try:
             driver.get(url)
@@ -70,6 +74,10 @@ class TweetCapture:
                         
             if len(elements) == 1:
                 elements[0].screenshot(path)
+                if radius > 0:
+                    im = Image.open(path)
+                    im = add_corners(im, radius)
+                    im.save(path)
             else:
                 filenames = []
                 for element in elements:
@@ -100,6 +108,8 @@ class TweetCapture:
                     im.close()
                     remove(im.filename)
                 
+                if radius > 0:
+                    new_im = add_corners(new_im, self.radius)
                 new_im.save(path)
                 new_im.close()
   
