@@ -4,10 +4,11 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from .utils import get_chromedriver_default_path
 
-async def get_driver(custom_options=None, driver_path=None):
+async def get_driver(custom_options=None, driver_path=None, gui=False):
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--no-sandbox")
+    if gui is False:
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--test-type")
     chrome_options.add_argument("--disable-logging")

@@ -9,6 +9,7 @@ from os.path import exists
 class TweetCapture:
     driver = None
     driver_path = None
+    gui = False
     mode = 3
     night_mode = 0
     wait_time = 5
@@ -19,6 +20,12 @@ class TweetCapture:
     show_mentions_count = 0
     overwrite = False
     radius = 30
+
+    hide_link_previews = False
+    hide_photos = False
+    hide_videos = False
+    hide_gifs = False
+    hide_quotes = False
 
     def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=30):
         self.set_night_mode(night_mode)
@@ -45,7 +52,7 @@ class TweetCapture:
 
             
         radius = self.radius if radius is None else radius
-        driver = await get_driver(self.chrome_opts, self.driver_path)
+        driver = await get_driver(self.chrome_opts, self.driver_path, self.gui)
         try:
             driver.get(url)
             driver.add_cookie(
@@ -71,6 +78,8 @@ class TweetCapture:
                             driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
                         except:
                             pass
+                    
+                    self.__hide_media(element, self.hide_link_previews, self.hide_photos, self.hide_videos, self.hide_gifs, self.hide_quotes)
                     if i == len(elements)-1:
                         self.__margin_tweet(self.mode if mode is None else mode, element)
                         
@@ -185,6 +194,69 @@ class TweetCapture:
             return """
             arguments[1].style.display="none";
             """
+    
+    def hide_all_media(self):
+        self.hide_link_previews = True
+        self.hide_photos = True
+        self.hide_videos = True
+        self.hide_gifs = True
+        self.hide_quotes = True  
+
+    def hide_media(self, link_previews=None, photos=None, videos=None, gifs=None, quotes=None):
+        if link_previews is not None: self.hide_link_previews = link_previews
+        if photos is not None: self.hide_photos = photos
+        if videos is not None: self.hide_videos = videos
+        if gifs is not None: self.hide_gifs = gifs
+        if quotes is not None: self.hide_quotes = quotes
+
+    def __hide_media(self, element, link_previews, photo, video, gif, quote):
+        LINKPREVIEW_XPATH = ".//ancestor::div[@data-testid = 'card.layoutLarge.media']/ancestor::div[contains(@id, 'id__')][1]"
+        MEDIA_XPATH = ".//ancestor::div[@data-testid = 'tweetPhoto']/ancestor::div[contains(@id, 'id__')]/div[1]"
+        QUOTE_XPATH = ".//ancestor::div[contains(@class, 'r-desppf')]/ancestor::div[contains(@id, 'id__')][1]"
+        media_elements = element.find_elements(By.XPATH, MEDIA_XPATH)
+        if link_previews is True:
+            link_preview_elements = element.find_elements(By.XPATH, LINKPREVIEW_XPATH)
+            for link_preview_element in link_preview_elements:
+                element.parent.execute_script("""
+                arguments[0].style.display="none";
+                """, link_preview_element)
+        if quote is True:
+            quote_elements = element.find_elements(By.XPATH, QUOTE_XPATH)
+            for quote_element in quote_elements:
+                element.parent.execute_script("""
+                arguments[0].style.display="none";
+                """, quote_element)
+        if len(media_elements) > 0:
+            for el in media_elements:
+                if video is True:
+                    sel = el.find_elements(By.XPATH, ".//video[contains(@src, 'blob:')]")
+                    if len(sel) > 0:
+                        element.parent.execute_script("""
+                        arguments[0].style.display="none";
+                        """, el)
+                        continue
+                if gif is True:
+                    sel = el.find_elements(By.XPATH, ".//video[not(contains(@src, 'blob:'))]")
+                    if len(sel) > 0:
+                        element.parent.execute_script("""
+                        arguments[0].style.display="none";
+                        """, el)
+                        continue
+                if gif is True:
+                    sel = el.find_elements(By.XPATH, ".//video[not(contains(@src, 'blob:'))]")
+                    if len(sel) > 0:
+                        element.parent.execute_script("""
+                        arguments[0].style.display="none";
+                        """, el)
+                        continue
+                if photo is True:
+                    sel = el.find_elements(By.XPATH, ".//div[contains(@data-testid, 'videoPlayer')]")
+                    if len(sel) == 0:
+                        element.parent.execute_script("""
+                        arguments[0].style.display="none";
+                        """, el)
+                        continue
+
 
     def __code_main_footer_items_new(self, element, mode):
         XPATHS = [
@@ -213,6 +285,12 @@ class TweetCapture:
                     element.parent.execute_script("""
                     arguments[0].style.display="none";
                     """, el)
+        
+        brdr = element.find_elements(By.XPATH, XPATHS[2])
+        if len(brdr) == 1:
+            element.parent.execute_script("""
+            arguments[0].style.borderBottom="none";
+            """, brdr[0])
 
     # Return: (elements, main_element_index)
     def __get_tweets(self, driver, show_parents, show_mentions_count):
@@ -253,3 +331,6 @@ class TweetCapture:
                     else:
                         return elements[main_element:r], main_element
         return [], -1
+    
+    def set_gui(self, gui):
+        self.gui = True if gui is True else False
