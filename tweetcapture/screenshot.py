@@ -65,10 +65,12 @@ class TweetCapture:
                 for i, element in enumerate(elements):
                     if i == main:
                         self.__hide_tweet_items(element)        
-                        driver.execute_script(self.__code_main_footer_items(self.mode if mode is None else mode), element.find_element(By.XPATH, ".//article/div/div/div/div[3]") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                        self.__code_main_footer_items_new(element, self.mode if mode is None else mode)
                     else:
-                        if not len(element.find_elements(By.XPATH, './/article/div/div/div/div[2]/div/div[2]/div')) > 0:
-                            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp") or element.find_element(By.XPATH, ".//article/div/div/div/div[2]"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                        try:
+                            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                        except:
+                            pass
                     if i == len(elements)-1:
                         self.__margin_tweet(self.mode if mode is None else mode, element)
                         
@@ -184,53 +186,41 @@ class TweetCapture:
             arguments[1].style.display="none";
             """
 
-    def __code_main_footer_items(self, mode):
-        return """
-        var texts = ["https://help.twitter.com/using-twitter/how-to-tweet#source-labels", "/likes", "/retweets", "<svg viewBox", "r-1ta3fxp"]
-        var mode = """+str(mode)+""";
-        var length = arguments[0].childNodes.length;
-        arguments[1].style.display="none";
-        for(var i = 0; i < length; i++) {
-            let t = arguments[0].childNodes[i].innerHTML;
-            if(mode == 0) {
-                for(var x = 0; x < texts.length; x++) {
-                    if(t.search(texts[x]) != -1) {
-                        arguments[0].childNodes[i].style.display="none";
-                    }
-                }
-                if(i == length-1) { 
-                    arguments[0].childNodes[i].style.marginTop = '15px';
-                    arguments[0].childNodes[i].style.border = 'none';
-                }
-            } else if(mode == 1) {
-                if(t.search(texts[0]) != -1) 
-                {
-                    arguments[0].childNodes[i].style.display="none";
-                    arguments[0].childNodes[i-1].style.marginBottom = '15px';
-                }
-                else if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
-            } else if(mode == 2) {
-                if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
-            } else if(mode == 3) {
-                //console.log(mode, t)
-                if(t.search(texts[3]) != -1) {
-                    //console.log(arguments[0].childNodes[i].childNodes)
-                    arguments[0].childNodes[i].childNodes[0].style.borderBottom="none";
-                }
-            } else if(mode == 4) {
-                if(t.search(texts[1]) != -1) 
-                {
-                    arguments[0].childNodes[i].style.display="none";
-                    arguments[0].childNodes[i-1].style.marginBottom = '15px';
-                }
-                if(t.search(texts[3]) != -1) arguments[0].childNodes[i].style.display="none";
-            }
-        }
-        """
+    def __code_main_footer_items_new(self, element, mode):
+        XPATHS = [
+            "((//ancestor::time)/..)[contains(@aria-describedby, 'id__')]",
+            ".//div[contains(@role, 'group')][not(contains(@id, 'id__'))]",
+            ".//div[contains(@role, 'group')][contains(@id, 'id__')]",
+            ".//div[contains(@data-testid, 'caret')]",
+            "((//ancestor::span)/..)[contains(@role, 'button')]",
+        ]
+        hides = []
+        if mode == 0:
+            hides = [0,1,2,3,4]
+        elif mode == 1:
+            hides = [0,2,3,4]
+        elif mode == 2:
+            hides = [2,3,4]
+        elif mode == 3:
+            hides = [3,4]
+        elif mode == 4:
+            hides = [1,2,3,4]
+
+        for i in hides:
+            els = element.find_elements(By.XPATH, XPATHS[i])
+            if len(els) > 0:
+                for el in els:
+                    element.parent.execute_script("""
+                    arguments[0].style.display="none";
+                    """, el)
 
     # Return: (elements, main_element_index)
     def __get_tweets(self, driver, show_parents, show_mentions_count):
-        elements = driver.find_elements(By.XPATH, "(//ancestor::article)/..")
+        els = driver.find_elements(By.XPATH, "(//ancestor::article)/..")
+        elements = []
+        for element in els:
+            if len(element.find_elements(By.XPATH, ".//article[contains(@data-testid, 'tweet')]")) > 0:
+                elements.append(element)
         length = len(elements)
         if length > 0:
             if length == 1:
