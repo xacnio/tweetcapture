@@ -71,7 +71,6 @@ class TweetCapture:
             else:
                 for i, element in enumerate(elements):
                     if i == main:
-                        self.__hide_tweet_items(element)        
                         self.__code_main_footer_items_new(element, self.mode if mode is None else mode)
                     else:
                         try:
@@ -160,17 +159,6 @@ class TweetCapture:
             try:
                 element = driver.find_element(By.XPATH, item)
                 driver.execute_script("""
-                arguments[0].style.display="none";
-                """, element)
-            except:
-                continue
-
-    def __hide_tweet_items(self, base):
-        HIDE_ITEMS_XPATH = ['.//article/div/div/div/div[3]/div[2]/div/div[2]']
-        for item in HIDE_ITEMS_XPATH:
-            try:
-                element = base.find_element(By.XPATH, item)
-                base.parent.execute_script("""
                 arguments[0].style.display="none";
                 """, element)
             except:
@@ -329,7 +317,7 @@ class TweetCapture:
                             return elements[main_element:1] + elements[r:r2], 0
                         return elements[main_element:], 0
                     else:
-                        return elements[main_element:r], main_element
+                        return elements[main_element:r], 0
         return [], -1
     
     def set_gui(self, gui):
