@@ -27,6 +27,8 @@ class TweetCapture:
     hide_gifs = False
     hide_quotes = False
 
+    __web = 1
+
     def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=30):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
@@ -63,7 +65,9 @@ class TweetCapture:
             self.__hide_global_items(driver)
             driver.execute_script("!!document.activeElement ? document.activeElement.blur() : 0")
 
-            if self.test is True: driver.save_screenshot("web.png")
+            if self.test is True: 
+                driver.save_screenshot(f"web{self.__web}.png")
+                self.__web += 1
             await sleep(2.0)
             elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets, self.show_mentions_count if show_mentions_count is None else show_mentions_count)
             if len(elements) == 0:

@@ -9,20 +9,21 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        #os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [ubuntu-latest]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: "3.7"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .
-          pip install opencv-python
+          pip install -e .
+          pip install opencv-python numpy
       - name: Test 
         run: |
           cd tweetcapture/tests
@@ -33,7 +34,6 @@ jobs:
         with:
           name: results-${{ matrix.os }}
           path: |
-            tweetcapture/tests/web.png
-            tweetcapture/tests/test.png
-            tweetcapture/tests/result.jpg
+            tweetcapture/tests/*.png
+            tweetcapture/tests/*.jpg
           if-no-files-found: ignore
