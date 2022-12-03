@@ -129,4 +129,6 @@ dmypy.json
 .pyre/
 
 # Screenshots
-*_tweetcapture.png
+*_tweetcapture*.png
+tweetcapture/tests/*.png
+tweetcapture/tests/*.jpg
