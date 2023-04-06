@@ -55,6 +55,8 @@ class TweetCapture:
             
         radius = self.radius if radius is None else radius
         driver = await get_driver(self.chrome_opts, self.driver_path, self.gui)
+        if driver is None:
+            raise Exception("webdriver cannot be initialized")
         try:
             driver.get(url)
             driver.add_cookie(
