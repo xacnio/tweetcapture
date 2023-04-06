@@ -7,12 +7,9 @@ with open('README.md', 'r') as fh:
 
 # Requirements
 def get_requirements():
-    return [
-        'selenium>=4.0.0',
-        'webdriver-manager>=3.8.5',
-        'packaging',
-        'Pillow>=9.3.0',
-    ]
+    with open('requirements.txt', 'r') as f:
+        requirements = f.read().splitlines()
+        return requirements
 
 
 setuptools.setup(

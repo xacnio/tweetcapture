@@ -22,6 +22,14 @@ Easily take screenshots of tweets/mentions and save them as image.
 > python -m unittest
 ```
 
+## Docker Usage
+```
+docker run --rm -v $(pwd):/app xacnio/tweetcapture -h
+docker run --rm -v $(pwd):/app xacnio/tweetcapture https://twitter.com/jack/status/20
+```
+- *<font size="1">On Windows: Replace `$(pwd)` with `${PWD}`* (**Powershell**)
+- *On Windows: Replace `$(pwd)` with `%cd%`* (**Command Line**)</font>
+
 ## Modes
 
 | #   |                                                   |                                                      |
