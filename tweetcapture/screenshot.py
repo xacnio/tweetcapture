@@ -19,7 +19,7 @@ class TweetCapture:
     show_parent_tweets = False
     show_mentions_count = 0
     overwrite = False
-    radius = 30
+    radius = 15
 
     hide_link_previews = False
     hide_photos = False
@@ -29,7 +29,7 @@ class TweetCapture:
 
     __web = 1
 
-    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=30):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=15):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.test = test
@@ -124,7 +124,7 @@ class TweetCapture:
                 
                 if radius > 0:
                     new_im = add_corners(new_im, self.radius)
-                new_im.save(path)
+                new_im.save(path, quality=100)
                 new_im.close()
   
             driver.quit()

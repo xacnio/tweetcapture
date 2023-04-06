@@ -67,7 +67,7 @@ class TestScreenshot(unittest.TestCase):
 
         cv2.imwrite(self.result_path, image)
 
-    # Main default screenshot test
+    # Mode tests
     def test_screenshot2(self):
         self.begin("https://twitter.com/jack/status/20", "test2.png", "result2.jpg")
 

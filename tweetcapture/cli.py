@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('-o', '--output', type=str, help="Output file name", default="")
     parser.add_argument('-sp', '--show-parent-tweets', dest='show_parent_tweets', action='store_true', help="Show parent tweets")
     parser.add_argument('-sm', '--show-mentions', type=int, help="Show mentions count (default: 0)", default=0)
-    parser.add_argument('-r', '--radius', type=int, help="Image radius", default=30)
+    parser.add_argument('-r', '--radius', type=int, help="Image radius", default=15)
 
     parser.add_argument('-hp', '--hide-photos', dest='hide_tweet_photos', action='store_true', help="Hide tweet photos")
     parser.add_argument('-hv', '--hide-videos', dest='hide_tweet_videos', action='store_true', help="Hide tweet videos")
