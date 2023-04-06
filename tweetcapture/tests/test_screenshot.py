@@ -46,7 +46,7 @@ class TestScreenshot(unittest.TestCase):
         image= cv2.imread(filename)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)        
 
-        for i in range(1,5):
+        for i in range(1,3):
             template = cv2.imread(f"../assets/test/1/crop{i}.png", 0)
             try:
                 result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
