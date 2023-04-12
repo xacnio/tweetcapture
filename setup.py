@@ -14,7 +14,7 @@ def get_requirements():
 
 setuptools.setup(
     name="tweet-capture",
-    version="0.1.8",
+    version="0.1.9",
     author="Alperen Çetin",
     author_email="xacnio@pm.me",
     description="Take a tweet screenshot",
@@ -23,6 +23,7 @@ setuptools.setup(
     url="https://github.com/Xacnio/tweetcapture",
     packages=setuptools.find_packages(),
     install_requires=get_requirements(),
+    data_files=[("", ["requirements.txt"])],
     entry_points={
         "console_scripts": ["tweetcapture=tweetcapture.cli:main"]},
     classifiers=[
