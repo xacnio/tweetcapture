@@ -48,8 +48,11 @@ class TweetCapture:
         if not isinstance(path, str) or len(path) == 0:
             path = get_tweet_file_name(url)
 
-        if exists(path) and (self.overwrite if overwrite is None else overwrite) is False:
-            raise Exception("File already exists")
+        if exists(path):
+            if (self.overwrite if overwrite is None else overwrite) is False:
+                raise Exception("File already exists")
+            else:
+                remove(path)
 
         url = is_valid_tweet_url(url)
         if self.lang:
@@ -168,8 +171,11 @@ class TweetCapture:
             self.cookies = cookies
 
     def __hide_global_items(self, driver):
-        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]',
-        '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]']
+        HIDE_ITEMS_XPATH = [
+            '/html/body/div/div/div/div[1]',
+            '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]',
+            ".//ancestor::div[@data-testid = 'tweetButtonInline']/../../../../../../../../../../.."
+        ]
         for item in HIDE_ITEMS_XPATH:
             try:
                 element = driver.find_element(By.XPATH, item)
