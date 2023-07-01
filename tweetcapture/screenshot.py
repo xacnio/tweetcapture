@@ -3,7 +3,7 @@ from tweetcapture.utils.webdriver import get_driver
 from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, add_corners
 from selenium.webdriver.common.by import By
 from PIL import Image
-from os import remove
+from os import remove, environ
 from os.path import exists
 
 class TweetCapture:
@@ -20,6 +20,7 @@ class TweetCapture:
     show_mentions_count = 0
     overwrite = False
     radius = 15
+    cookies = None
 
     hide_link_previews = False
     hide_photos = False
@@ -37,6 +38,8 @@ class TweetCapture:
         self.show_mentions_count = show_mentions_count
         self.overwrite = overwrite
         self.radius = radius
+        if environ.get('AUTH_TOKEN') != None:
+            self.cookies = [{'name': 'auth_token', 'value': environ.get('AUTH_TOKEN')}]
 
     async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None, radius=None):
         if is_valid_tweet_url(url) is False:
@@ -45,14 +48,16 @@ class TweetCapture:
         if not isinstance(path, str) or len(path) == 0:
             path = get_tweet_file_name(url)
 
-        if exists(path) and (self.overwrite if overwrite is None else overwrite) is False:
-            raise Exception("File already exists")
+        if exists(path):
+            if (self.overwrite if overwrite is None else overwrite) is False:
+                raise Exception("File already exists")
+            else:
+                remove(path)
 
         url = is_valid_tweet_url(url)
         if self.lang:
             url += "?lang=" + self.lang
 
-            
         radius = self.radius if radius is None else radius
         driver = await get_driver(self.chrome_opts, self.driver_path, self.gui)
         if driver is None:
@@ -61,6 +66,9 @@ class TweetCapture:
             driver.get(url)
             driver.add_cookie(
                 {"name": "night_mode", "value": str(self.night_mode if night_mode is None else night_mode)})
+            if self.cookies:
+                for cookie in self.cookies:
+                    driver.add_cookie(cookie)
             driver.get(url)
             await sleep(self.wait_time)
            
@@ -157,10 +165,17 @@ class TweetCapture:
 
     def set_chromedriver_path(self, path):
         self.driver_path = path
+    
+    def set_cookies(self, cookies):
+        if isinstance(cookies, list):
+            self.cookies = cookies
 
     def __hide_global_items(self, driver):
-        HIDE_ITEMS_XPATH = ['/html/body/div/div/div/div[1]',
-        '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]']
+        HIDE_ITEMS_XPATH = [
+            '/html/body/div/div/div/div[1]',
+            '/html/body/div/div/div/div[2]/header', '/html/body/div/div/div/div[2]/main/div/div/div/div/div/div[1]',
+            ".//ancestor::div[@data-testid = 'tweetButtonInline']/../../../../../../../../../../.."
+        ]
         for item in HIDE_ITEMS_XPATH:
             try:
                 element = driver.find_element(By.XPATH, item)

@@ -25,6 +25,8 @@ jobs:
           pip install -e .
           pip install opencv-python numpy
       - name: Test 
+        env:
+          AUTH_TOKEN: ${{ secrets.AUTH_TOKEN }}
         run: |
           cd tweetcapture/tests
           python -m unittest
