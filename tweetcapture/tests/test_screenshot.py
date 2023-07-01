@@ -2,7 +2,7 @@ import cv2
 from tweetcapture import TweetCapture
 from asyncio import run
 import unittest
-from os import remove
+from os import remove, environ
 from os.path import exists
 import glob
 import numpy as np
@@ -17,6 +17,9 @@ class TestScreenshot(unittest.TestCase):
         self.tweetcapture = TweetCapture(test=True, overwrite=True)
         self.tweetcapture.set_lang('en')
         super(TestScreenshot, self).__init__(*args, **kwargs)
+
+        if environ.get('AUTH_TOKEN') != None:
+            self.tweetcapture.set_cookies([{'name': 'auth_token', 'value': environ.get('AUTH_TOKEN')}])
 
         # Delete all test files
         files = glob.glob('*.png')

@@ -26,6 +26,7 @@ def parse_args():
     parser.add_argument('--overwrite', dest='overwrite', action='store_true', help="Overwrite output file if exists")
     parser.add_argument('-d', '--debug', dest='debug', action='store_true', help="Debug mode")
     parser.add_argument('--gui', dest='gui', action='store_true', help="GUI mode, open browser window")
+    parser.add_argument('--cookies', type=str, help="Set cookies cookie1=value1;cookie2=value2", default="")
     parser.set_defaults(show_parent_tweets=False, overwrite=False, debug=False, gui=False, hide_tweet_photos=False, hide_tweet_videos=False, hide_tweet_gifs=False, hide_tweet_quotes=False, hide_tweet_link_previews=False, hide_all_tweet_medias=False)
 
     args = parser.parse_args()
@@ -44,6 +45,18 @@ def main():
     tweet.set_gui(args.gui)
     if len(args.chromedriver) > 0:
         tweet.set_chromedriver_path(args.chromedriver)
+
+    if len(args.cookies) > 0:
+        cookies = []
+        splitted = args.cookies.split(";")
+        if len(splitted) >= 1:
+            for cookie in splitted:
+                cookie = cookie.split("=")
+                if len(cookie) == 2:
+                    cookies.append({'name': cookie[0], 'value': cookie[1]})
+            if len(cookies) > 0:
+                tweet.set_cookies(cookies)
+
     try:
         filename = run(tweet.screenshot(args.url, args.output))
         print(f"Screenshot is saved: {filename}")
