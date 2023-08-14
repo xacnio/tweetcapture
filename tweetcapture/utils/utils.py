@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 
 def is_valid_tweet_url(url):
     result = match(
-        "^https?:\/\/([A-Za-z0-9.]+)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
+        "^https?:\/\/([A-Za-z0-9.]+)?(twitter\.com|x\.com)\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
     if result is not None:
         return result[0]
     return False
@@ -13,12 +13,12 @@ def is_valid_tweet_url(url):
 
 def get_tweet_file_name(url):
     result = match(
-        "^https?:\/\/([A-Za-z0-9.]+)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
+        "^https?:\/\/([A-Za-z0-9.]+)?(twitter\.com|x\.com)\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
     return f"@{result[2]}_{result[4]}_tweetcapture.png"
 
 def get_tweet_base_url(url):
     result = match(
-        "^https?:\/\/([A-Za-z0-9.]+)?twitter\.com\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
+        "^https?:\/\/([A-Za-z0-9.]+)?(twitter\.com|x\.com)\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
     return f"/{result[2].lower()}/status/{result[4].lower()}"
 
 
