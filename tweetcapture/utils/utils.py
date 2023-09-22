@@ -14,12 +14,12 @@ def is_valid_tweet_url(url):
 def get_tweet_file_name(url):
     result = match(
         "^https?:\/\/([A-Za-z0-9.]+)?(twitter\.com|x\.com)\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
-    return f"@{result[2]}_{result[4]}_tweetcapture.png"
+    return f"@{result[3]}_{result[5]}_tweetcapture.png"
 
 def get_tweet_base_url(url):
     result = match(
         "^https?:\/\/([A-Za-z0-9.]+)?(twitter\.com|x\.com)\/(?:#!\/)?(\w+)\/status(es)?\/(\d+)", url)
-    return f"/{result[2].lower()}/status/{result[4].lower()}"
+    return f"/{result[3].lower()}/status/{result[5].lower()}"
 
 
 def get_chromedriver_default_path():
