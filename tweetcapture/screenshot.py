@@ -309,18 +309,19 @@ class TweetCapture:
             ".//div[contains(@role, 'group')][contains(@id, 'id__')]",
             ".//div[contains(@data-testid, 'caret')]",
             "((//ancestor::span)/..)[contains(@role, 'button')]",
+            ".//div[contains(@data-testid, 'caret')]/../../../../..",
         ]
         hides = []
         if mode == 0:
-            hides = [0,1,2,3,4]
+            hides = [0,1,2,3,4,5]
         elif mode == 1:
-            hides = [0,2,3,4]
+            hides = [0,2,3,4,5]
         elif mode == 2:
-            hides = [2,3,4]
+            hides = [2,3,4,5]
         elif mode == 3:
-            hides = [3,4]
+            hides = [3,4,5]
         elif mode == 4:
-            hides = [1,2,3,4]
+            hides = [1,2,3,4,5]
 
         for i in hides:
             els = element.find_elements(By.XPATH, XPATHS[i])
