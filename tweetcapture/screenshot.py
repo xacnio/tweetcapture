@@ -3,6 +3,7 @@ from tweetcapture.utils.webdriver import get_driver
 from tweetcapture.utils.utils import is_valid_tweet_url, get_tweet_file_name, add_corners
 from selenium.webdriver.common.by import By
 from PIL import Image
+Image.MAX_IMAGE_PIXELS = None
 from os import remove, environ
 from os.path import exists
 
@@ -20,6 +21,7 @@ class TweetCapture:
     show_mentions_count = 0
     overwrite = False
     radius = 15
+    scale = 1.0
     cookies = None
 
     hide_link_previews = False
@@ -30,9 +32,10 @@ class TweetCapture:
 
     __web = 1
 
-    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=15):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=15, scale=1.0):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
+        self.set_scale(scale)
         self.test = test
         self.show_parent_tweets = show_parent_tweets
         self.show_mentions_count = show_mentions_count
@@ -41,7 +44,7 @@ class TweetCapture:
         if environ.get('AUTH_TOKEN') != None:
             self.cookies = [{'name': 'auth_token', 'value': environ.get('AUTH_TOKEN')}]
 
-    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None, radius=None):
+    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None, radius=None, scale=None):
         if is_valid_tweet_url(url) is False:
             raise Exception("Invalid tweet url")
 
@@ -59,7 +62,8 @@ class TweetCapture:
             url += "?lang=" + self.lang
 
         radius = self.radius if radius is None else radius
-        driver = await get_driver(self.chrome_opts, self.driver_path, self.gui)
+        scale = self.scale if scale is None else scale
+        driver = await get_driver(self.chrome_opts, self.driver_path, self.gui, scale)
         if driver is None:
             raise Exception("webdriver cannot be initialized")
         try:
@@ -70,6 +74,7 @@ class TweetCapture:
                 for cookie in self.cookies:
                     driver.add_cookie(cookie)
             driver.get(url)
+            self.__init_scale_css(driver)
             await sleep(self.wait_time)
            
             self.__hide_global_items(driver)
@@ -97,18 +102,36 @@ class TweetCapture:
                         self.__margin_tweet(self.mode if mode is None else mode, element)
                         
             if len(elements) == 1:
-                elements[0].screenshot(path)
-                if radius > 0:
+                driver.execute_script("window.scrollTo(0, 0);")
+                x, y, width, height = driver.execute_script("var rect = arguments[0].getBoundingClientRect(); return [rect.x, rect.y, rect.width, rect.height];", elements[0])
+                await sleep(0.1)
+                if scale != 1.0:
+                    driver.save_screenshot(path)
+                else:
+                    elements[0].screenshot(path)
+                if radius > 0 or scale != 1.0:
                     im = Image.open(path)
-                    im = add_corners(im, radius)
+                    if scale != 1.0:
+                        im = im.crop((x, y, x+width, y+height))
+                    if radius > 0:
+                        im = add_corners(im, radius)
                     im.save(path)
+                    im.close()
             else:
                 filenames = []
                 for element in elements:
                     filename = "tmp_%s_tweetcapture.png" % element.id
                     driver.execute_script("arguments[0].scrollIntoView();", element)
+                    x, y, width, height = driver.execute_script("var rect = arguments[0].getBoundingClientRect(); return [rect.x, rect.y, rect.width, rect.height];", element)
                     await sleep(0.1)
-                    element.screenshot(filename)
+                    if scale != 1.0:
+                        driver.save_screenshot(filename)
+                        im = Image.open(filename)
+                        im = im.crop((x, y, x+width, y+height))
+                        im.save(filename)
+                        im.close()
+                    else:
+                        element.screenshot(filename)
                     filenames.append(filename)
                 width = 0
                 height = 0
@@ -169,6 +192,18 @@ class TweetCapture:
     def set_cookies(self, cookies):
         if isinstance(cookies, list):
             self.cookies = cookies
+
+    def set_scale(self, scale):
+        if isinstance(scale, float):
+            if scale > 0.0 and scale <= 14.0:
+                self.scale = scale
+
+    def __init_scale_css(self, driver):
+        driver.execute_script("""
+            var style = document.createElement('style');
+            style.innerHTML = ".r-1ye8kvj { max-width: 40rem !important; } .r-rthrr5 { width: 100% !important; } body { scale: """+str(self.scale)+""" !important; transform-origin: 0 0 !important; }";
+            document.head.appendChild(style);
+        """)
 
     def __hide_global_items(self, driver):
         HIDE_ITEMS_XPATH = [
@@ -307,6 +342,10 @@ class TweetCapture:
         elements = []
         for element in els:
             if len(element.find_elements(By.XPATH, ".//article[contains(@data-testid, 'tweet')]")) > 0:
+                source = element.get_attribute("innerHTML")
+                # sponsored tweet pass
+                if source.find("M19.498 3h-15c-1.381 0-2.5 1.12-2.5 2.5v13c0 1.38") != -1 or source.find('css-1dbjc4n r-1s2bzr4" id="id__jrl5cg7nxl"') != -1:
+                    continue
                 elements.append(element)
         length = len(elements)
         if length > 0:

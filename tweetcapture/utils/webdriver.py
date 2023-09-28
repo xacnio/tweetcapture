@@ -3,10 +3,13 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from .utils import get_chromedriver_default_path
-import os
+from os.path import exists
+from os import environ
+from math import ceil
 
-async def get_driver(custom_options=None, driver_path=None, gui=False):
+async def get_driver(custom_options=None, driver_path=None, gui=False, scale=1.0):
     chrome_options = Options()
+    if scale < 1.0: scale = 1.0
     if gui is False:
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
@@ -15,9 +18,10 @@ async def get_driver(custom_options=None, driver_path=None, gui=False):
     chrome_options.add_argument("--disable-logging")
     chrome_options.add_argument('--ignore-certificate-errors')
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--window-size=768,2000")
+    chrome_options.add_argument(f"--window-size={ceil(1024*scale)},{ceil(1024*scale)}")
     chrome_options.add_argument("--remote-debugging-port=9222")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36")
+    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36")
 
     if isinstance(custom_options, list) and len(custom_options) > 0:
         for option in custom_options:
@@ -27,9 +31,9 @@ async def get_driver(custom_options=None, driver_path=None, gui=False):
         'excludeSwitches', ['enable-logging'])
 
     # CHROME_DRIVER environment variable : priority 1
-    if os.environ.get('CHROME_DRIVER') is not None:
+    if environ.get('CHROME_DRIVER') is not None:
         try:
-            driver = webdriver.Chrome(service=Service(executable_path=os.environ.get('CHROME_DRIVER')), options=chrome_options)
+            driver = webdriver.Chrome(service=Service(executable_path=environ.get('CHROME_DRIVER')), options=chrome_options)
             return driver
         except Exception as e:
             print(e)
@@ -37,7 +41,7 @@ async def get_driver(custom_options=None, driver_path=None, gui=False):
 
     # driver_path argument : priority 2
     if driver_path is None: driver_path = get_chromedriver_default_path()
-    if os.path.exists(driver_path):
+    if exists(driver_path):
         try:
             driver = webdriver.Chrome(service=Service(executable_path=driver_path), options=chrome_options)
             return driver

@@ -15,6 +15,7 @@ def parse_args():
     parser.add_argument('-sp', '--show-parent-tweets', dest='show_parent_tweets', action='store_true', help="Show parent tweets")
     parser.add_argument('-sm', '--show-mentions', type=int, help="Show mentions count (default: 0)", default=0)
     parser.add_argument('-r', '--radius', type=int, help="Image radius", default=15)
+    parser.add_argument('-s', '--scale', type=float, help="Screenshot scale (between 0.0 and 14.0) (1.0 = original, 2.0 = 2x high) (default: 1.0)", default=1.0)
 
     parser.add_argument('-hp', '--hide-photos', dest='hide_tweet_photos', action='store_true', help="Hide tweet photos")
     parser.add_argument('-hv', '--hide-videos', dest='hide_tweet_videos', action='store_true', help="Hide tweet videos")
@@ -35,7 +36,7 @@ def parse_args():
 
 def main():
     args = parse_args()
-    tweet = TweetCapture(args.mode, args.night_mode, show_parent_tweets=args.show_parent_tweets, show_mentions_count=args.show_mentions, overwrite=args.overwrite, radius=args.radius)
+    tweet = TweetCapture(args.mode, args.night_mode, show_parent_tweets=args.show_parent_tweets, show_mentions_count=args.show_mentions, overwrite=args.overwrite, radius=args.radius, scale=args.scale)
     tweet.set_lang(args.lang)
     tweet.set_wait_time(args.t)
     if args.hide_all_tweet_medias is True: 
