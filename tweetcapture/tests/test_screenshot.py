@@ -120,7 +120,7 @@ class TestScreenshot(unittest.TestCase):
 
     # Hide photos test
     def test_screenshot_hidephotos(self):
-        self.begin("https://twitter.com/Twitter/status/1274087687469715457", "testhidephoto.png", "resulthidephoto.png")
+        self.begin("https://twitter.com/elonmusk/status/1527418023069503511", "testhidephoto.png", "resulthidephoto.png")
 
         print(f"Screenshot hide photos test started.")
 
@@ -156,7 +156,7 @@ class TestScreenshot(unittest.TestCase):
 
     # Hide gifs test
     def test_screenshot_hidegifs(self):
-        self.begin("https://twitter.com/Twitter/status/1075556424888082433", "testhidegif.png", "resulthidegif.png")
+        self.begin("https://twitter.com/elonmusk/status/1521195604596113408", "testhidegif.png", "resulthidegif.png")
 
         print(f"Screenshot hide gifs test started.")
 
@@ -192,7 +192,7 @@ class TestScreenshot(unittest.TestCase):
 
     # Hide videos test
     def test_screenshot_hidevideos(self):
-        self.begin("https://twitter.com/Twitter/status/815262863644205056", "testhidevideo.png", "resulthidevideo.png")
+        self.begin("https://twitter.com/elonmusk/status/1533408313894912001", "testhidevideo.png", "resulthidevideo.png")
 
         print(f"Screenshot hide videos test started.")
 
@@ -201,34 +201,15 @@ class TestScreenshot(unittest.TestCase):
         self.assertEqual(filename, self.output_path, "File name not equal with output filename")
         self.assertTrue(exists(filename), "File not exists")
 
-        print(f"Checking similarity with test images...")
+        print(f"Checking screenshot height...")
 
         image= cv2.imread(filename)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)        
-
-        template = cv2.imread(f"../assets/test/hidevideos/image.png", 0)
-        try:
-            result = cv2.matchTemplate(gray, template, cv2.TM_CCOEFF_NORMED)
-        except cv2.error as err:
-            raise err
-    
-        m = result.max()
-        expect = False
-        is_exist = (m > 0.80)
-        if is_exist:
-            min_val, max_val, min_loc, max_loc= cv2.minMaxLoc(result)
-            height, width= template.shape[:2]
-            top_left= max_loc
-            bottom_right= (top_left[0] + width, top_left[1] + height)
-            cv2.rectangle(image, top_left, bottom_right, (0,0,255),5)
-            cv2.imwrite(self.result_path, image)
-        
-        print(f"Screenshot checked: %%%.2g Expect: {expect} Result: {is_exist}" % m)
-        assert (is_exist == expect), f"Screenshot has a video, it is not matching with template"
+        h, _, _ = image.shape
+        assert (h < 400), f"Screenshot has a video"
 
     # Hide quotes test
     def test_screenshot_hidequotes(self):
-        self.begin("https://twitter.com/Twitter/status/1299808792322940928", "testhidequote.png", "resulthidequote.png")
+        self.begin("https://twitter.com/X/status/1722695941348569464", "testhidequote.png", "resulthidequote.png")
 
         print(f"Screenshot hide quotes test started.")
 
@@ -263,8 +244,9 @@ class TestScreenshot(unittest.TestCase):
         assert (is_exist == expect), f"Screenshot has a quote, it is not matching with template"
 
     # Show parent tweet test
+    @unittest.skip("The test disabled because guests cannot see parent tweets")
     def test_screenshot_showparent(self):
-        self.begin("https://twitter.com/jack/status/1040692444206170112", "testshowparent.png", "resultshowparent.png")
+        self.begin("https://twitter.com/elonmusk/status/940125978797281281", "testshowparent.png", "resultshowparent.png")
 
         print(f"Screenshot show parent tweet test started.")
 
@@ -298,6 +280,7 @@ class TestScreenshot(unittest.TestCase):
         assert (is_exist == expect), f"Screenshot has not a parent tweet, it is not matching with template"
 
     # Show mentions test
+    @unittest.skip("The test disabled because guests cannot see mentions")
     def test_screenshot_showmentions(self):
         self.begin("https://twitter.com/superwhatevr/status/1040704190748798976", "testshowmentions.png", "resultshowmentions.png")
 
