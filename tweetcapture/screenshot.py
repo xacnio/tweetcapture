@@ -279,6 +279,12 @@ class TweetCapture:
                         arguments[0].style.display="none";
                         """, el)
                         continue
+                    sel = el.find_elements(By.XPATH, ".//source[contains(@src, 'blob:')]")
+                    if len(sel) > 0:
+                        element.parent.execute_script("""
+                        arguments[0].style.display="none";
+                        """, el)
+                        continue
                 if gif is True:
                     sel = el.find_elements(By.XPATH, ".//video[not(contains(@src, 'blob:'))]")
                     if len(sel) > 0:
