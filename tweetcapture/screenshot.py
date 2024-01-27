@@ -93,7 +93,7 @@ class TweetCapture:
                         self.__code_main_footer_items_new(element, self.mode if mode is None else mode)
                     else:
                         try:
-                            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.CSS_SELECTOR, "div.r-1ta3fxp"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
+                            driver.execute_script(self.__code_footer_items(self.mode if mode is None else mode), element.find_element(By.XPATH, ".//div[@role = 'group']"), element.find_element(By.CSS_SELECTOR, ".r-1hdv0qi:first-of-type"))
                         except:
                             pass
                     
@@ -221,7 +221,7 @@ class TweetCapture:
                 continue
 
     def __margin_tweet(self, mode, base):
-        if mode == 0 or mode == 1:
+        if mode == 0:
             try:
                 base.parent.execute_script(
                     """arguments[0].childNodes[0].style.paddingBottom = '35px';""", base.find_element(By.TAG_NAME, "article"))
@@ -229,7 +229,7 @@ class TweetCapture:
                 pass
 
     def __code_footer_items(self, mode):
-        if mode == 0 or mode == 4:
+        if mode == 0:
             return """
             arguments[0].style.display="none";
             arguments[1].style.display="none";
@@ -279,6 +279,12 @@ class TweetCapture:
                         arguments[0].style.display="none";
                         """, el)
                         continue
+                    sel = el.find_elements(By.XPATH, ".//source[contains(@src, 'blob:')]")
+                    if len(sel) > 0:
+                        element.parent.execute_script("""
+                        arguments[0].style.display="none";
+                        """, el)
+                        continue
                 if gif is True:
                     sel = el.find_elements(By.XPATH, ".//video[not(contains(@src, 'blob:'))]")
                     if len(sel) > 0:
@@ -304,24 +310,51 @@ class TweetCapture:
 
     def __code_main_footer_items_new(self, element, mode):
         XPATHS = [
-            "((//ancestor::time)/..)[contains(@aria-describedby, 'id__')]",
-            ".//div[contains(@role, 'group')][not(contains(@id, 'id__'))]",
-            ".//div[contains(@role, 'group')][contains(@id, 'id__')]",
-            ".//div[contains(@data-testid, 'caret')]",
-            "((//ancestor::span)/..)[contains(@role, 'button')]",
-            ".//div[contains(@data-testid, 'caret')]/../../../../..",
+            ".//ancestor::time/ancestor::a[contains(@aria-describedby, 'id__')]", # 0 time
+            ".//div[@role = 'group'][contains(@id, 'id__')]", # 1 action buttons
+            ".//div[@role = 'group'][not(contains(@id, 'id__'))]", # 2 tweet rt/like/bookmark counts
+            ".//div[contains(@data-testid, 'caret')]", # 3 tweet caret button
+            "((//ancestor::span)/..)[contains(@role, 'button')]", # 4 translate button
+            ".//div[contains(@data-testid, 'caret')]/../../../../..", # 5 tweet caret button / subscribe-follow button
+            ".//ancestor::time/../../..//span[contains(text(), '·')]/..", # 6 separator between time and views
+            ".//ancestor::time/../../../div[3]", # 7 views
+            ".//ancestor::time/../../../../..", # 8 time & views outer
+            ".//ancestor::time/../../../../../..", # 9 time & views outer (with margin)
+            ".//div[@role = 'group'][contains(@id, 'id__')]/../../../div[contains(@class, 'r-j5o65s')]", # 10 border line
         ]
+
+        newInfoMode = True
+        try:
+            if len(element.find_elements(By.XPATH, ".//div[@role = 'separator']")) > 0:
+                newInfoMode = False
+        except:
+            pass
+        
         hides = []
-        if mode == 0:
-            hides = [0,1,2,3,4,5]
-        elif mode == 1:
-            hides = [0,2,3,4,5]
-        elif mode == 2:
-            hides = [2,3,4,5]
-        elif mode == 3:
+        if mode == 0: # hide everything
+            hides = [0,1,2,3,4,5,6,7,9]
+            if newInfoMode is True: hides.append(10)
+        elif mode == 1: # show tweet rt/likes
+            hides = [0,3,4,5,6]
+            if newInfoMode is False: hides.append(1)
+        elif mode == 2: # show tweet rt/likes & timestasmp
             hides = [3,4,5]
-        elif mode == 4:
-            hides = [1,2,3,4,5]
+            if newInfoMode is False: hides.append(1)
+        elif mode == 3: # show everything
+            hides = [3,4,5]
+        elif mode == 4: # show timestamp
+            hides = [1,2,3,4,5,6,7]
+
+        viewsVisible = False
+        try:
+            if len(element.find_elements(By.XPATH, "((//ancestor::time)/..)[contains(@aria-describedby, 'id__')]/../../div")) > 1:
+                viewsVisible = True
+        except:
+            pass
+
+        # if time hidden and views not there, hide outer (to clear gaps)
+        if (mode != 0) and (0 in hides) and (viewsVisible is False):
+            hides.append(8)
 
         for i in hides:
             els = element.find_elements(By.XPATH, XPATHS[i])
