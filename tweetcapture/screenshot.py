@@ -18,6 +18,7 @@ class TweetCapture:
     lang = None
     test = False
     show_parent_tweets = False
+    parent_tweets_limit = 0
     show_mentions_count = 0
     overwrite = False
     radius = 15
@@ -32,19 +33,20 @@ class TweetCapture:
 
     __web = 1
 
-    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, show_mentions_count=0, overwrite=False, radius=15, scale=1.0):
+    def __init__(self, mode=3, night_mode=0, test=False, show_parent_tweets=False, parent_tweets_limit=0, show_mentions_count=0, overwrite=False, radius=15, scale=1.0):
         self.set_night_mode(night_mode)
         self.set_mode(mode)
         self.set_scale(scale)
         self.test = test
         self.show_parent_tweets = show_parent_tweets
+        self.parent_tweets_limit = parent_tweets_limit
         self.show_mentions_count = show_mentions_count
         self.overwrite = overwrite
         self.radius = radius
         if environ.get('AUTH_TOKEN') != None:
             self.cookies = [{'name': 'auth_token', 'value': environ.get('AUTH_TOKEN')}]
 
-    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, show_mentions_count=None, overwrite=None, radius=None, scale=None):
+    async def screenshot(self, url, path=None, mode=None, night_mode=None, show_parent_tweets=None, parent_tweets_limit=None, show_mentions_count=None, overwrite=None, radius=None, scale=None):
         if is_valid_tweet_url(url) is False:
             raise Exception("Invalid tweet url")
 
@@ -84,7 +86,7 @@ class TweetCapture:
                 driver.save_screenshot(f"web{self.__web}.png")
                 self.__web += 1
             await sleep(2.0)
-            elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets, self.show_mentions_count if show_mentions_count is None else show_mentions_count)
+            elements, main = self.__get_tweets(driver, self.show_parent_tweets if show_parent_tweets is None else show_parent_tweets, self.parent_tweets_limit if parent_tweets_limit is None else parent_tweets_limit, self.show_mentions_count if show_mentions_count is None else show_mentions_count)
             if len(elements) == 0:
                 raise Exception("Tweets not found")
             else:
@@ -371,7 +373,7 @@ class TweetCapture:
             """, brdr[0])
 
     # Return: (elements, main_element_index)
-    def __get_tweets(self, driver, show_parents, show_mentions_count):
+    def __get_tweets(self, driver, show_parents, parent_tweets_limit, show_mentions_count):
         els = driver.find_elements(By.XPATH, "(//ancestor::article)/..")
         elements = []
         for element in els:
@@ -397,15 +399,18 @@ class TweetCapture:
                 else:
                     r = main_element+1
                     r2 = r+show_mentions_count
+                    s1 = 0
+                    if parent_tweets_limit > 0 and len(elements[s1:main_element]) > parent_tweets_limit:
+                        s1 = main_element - parent_tweets_limit
                     if show_parents and show_mentions_count > 0:
-                        if len(elements[r:]) > show_mentions_count:                   
-                            return (elements[0:r] + elements[r:r2]), main_element
-                        return elements, main_element
+                        if len(elements[r:]) > show_mentions_count:      
+                            return (elements[s1:r] + elements[r:r2]), main_element
+                        return elements[s1:], main_element
                     elif show_parents:
                         if main_element == 0:
                             return elements[0:1], 0
                         else:
-                            return elements[:r], main_element
+                            return elements[s1:r], main_element
                     elif show_mentions_count > 0:
                         if len(elements[r:]) > show_mentions_count:
                             return elements[main_element:1] + elements[r:r2], 0
